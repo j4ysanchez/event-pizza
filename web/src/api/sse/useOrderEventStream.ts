@@ -49,36 +49,36 @@ export function useOrderEventStream(orderId: string): UseOrderEventStreamResult 
   })
 
   // Hydrate from initial REST snapshot
-  useQuery<OrderSnapshotResponse>({
+  const { data: snapshot } = useQuery<OrderSnapshotResponse>({
     queryKey: ['orders', orderId],
     queryFn: () => fetchOrderSnapshot(orderId),
     enabled: !!orderId,
-    // Only fires once on mount; SSE takes over after that
     staleTime: Infinity,
-    select: (snapshot) => {
-      dispatch({
-        type: 'OrderPlaced',
-        payload: {
-          sequenceNumber: snapshot.lastSequenceNumber,
-          occurredAt: snapshot.placedAt,
-          orderId: snapshot.orderId,
-          customerId: snapshot.customerId,
-          items: snapshot.items.map((item) => ({
-            itemId: item.itemId,
-            pizzaId: item.pizzaId,
-            name: item.name,
-            quantity: item.quantity,
-            unitPrice: item.unitPrice,
-          })),
-          fulfillmentType: snapshot.fulfillmentType,
-          deliveryAddress: snapshot.deliveryAddress,
-          totalPrice: snapshot.totalPrice,
-          placedAt: snapshot.placedAt,
-        },
-      })
-      return snapshot
-    },
   })
+
+  useEffect(() => {
+    if (!snapshot) return
+    dispatch({
+      type: 'OrderPlaced',
+      payload: {
+        sequenceNumber: snapshot.lastSequenceNumber,
+        occurredAt: snapshot.placedAt,
+        orderId: snapshot.orderId,
+        customerId: snapshot.customerId,
+        items: snapshot.items.map((item) => ({
+          itemId: item.itemId,
+          pizzaId: item.pizzaId,
+          name: item.name,
+          quantity: item.quantity,
+          unitPrice: item.unitPrice,
+        })),
+        fulfillmentType: snapshot.fulfillmentType,
+        deliveryAddress: snapshot.deliveryAddress,
+        totalPrice: snapshot.totalPrice,
+        placedAt: snapshot.placedAt,
+      },
+    })
+  }, [snapshot])
 
   return { orderViewModel, isConnected, isStale, reconnectAttempt }
 }

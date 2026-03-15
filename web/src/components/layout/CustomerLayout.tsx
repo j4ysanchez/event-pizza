@@ -3,6 +3,7 @@ import { ShoppingCart, Pizza } from 'lucide-react'
 import { useCartStore } from '../../store/cartStore'
 import { useUIStore } from '../../store/uiStore'
 import { CartDrawer } from '../cart/CartDrawer'
+import { CustomizePizzaSheet } from '../../features/customize/CustomizePizzaSheet'
 
 export function CustomerLayout() {
   const totalItems = useCartStore((s) => s.totalItems())
@@ -39,6 +40,7 @@ export function CustomerLayout() {
         <Outlet />
       </main>
       <CartDrawer />
+      <CustomizePizzaSheet />
     </div>
   )
 }
