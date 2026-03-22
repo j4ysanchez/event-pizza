@@ -1,21 +1,17 @@
+import { useRef, useEffect } from 'react'
 import { useOperationsStream } from '../../api/sse/useOperationsStream'
-
-interface MetricCardProps {
-  label: string
-  value: string | number
-}
-
-function MetricCard({ label, value }: MetricCardProps) {
-  return (
-    <div className="bg-gray-800 rounded-xl p-4">
-      <p className="text-sm text-gray-400 mb-1">{label}</p>
-      <p className="text-2xl font-bold text-white">{value}</p>
-    </div>
-  )
-}
+import { LiveWidget } from './LiveWidget'
 
 export function ManagerDashboardView() {
   const { metrics, isConnected } = useOperationsStream()
+
+  const queueHistory = useRef<number[]>([])
+  const activeHistory = useRef<number[]>([])
+
+  useEffect(() => {
+    queueHistory.current = [...queueHistory.current, metrics.queueDepth].slice(-60)
+    activeHistory.current = [...activeHistory.current, metrics.activeOrders].slice(-60)
+  }, [metrics.queueDepth, metrics.activeOrders])
 
   return (
     <div>
@@ -27,10 +23,26 @@ export function ManagerDashboardView() {
       </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        <MetricCard label="Active Orders" value={metrics.activeOrders} />
-        <MetricCard label="Avg Prep Time" value={`${metrics.avgPrepTimeMinutes.toFixed(1)}m`} />
-        <MetricCard label="Revenue Today" value={`$${metrics.revenueToday.toFixed(2)}`} />
-        <MetricCard label="Queue Depth" value={metrics.queueDepth} />
+        <LiveWidget
+          label="Active Orders"
+          value={metrics.activeOrders}
+          sparklineData={[...activeHistory.current]}
+          sparklineColor="#34d399"
+        />
+        <LiveWidget
+          label="Avg Prep Time"
+          value={`${metrics.avgPrepTimeMinutes.toFixed(1)}m`}
+        />
+        <LiveWidget
+          label="Revenue Today"
+          value={`$${metrics.revenueToday.toFixed(2)}`}
+        />
+        <LiveWidget
+          label="Queue Depth"
+          value={metrics.queueDepth}
+          sparklineData={[...queueHistory.current]}
+          sparklineColor="#60a5fa"
+        />
       </div>
 
       {metrics.outOfStockItems.length > 0 && (
