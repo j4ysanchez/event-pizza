@@ -1,11 +1,13 @@
 import { useEffect, useRef, useState, useCallback } from 'react'
 import type { ZodType } from 'zod'
+import { upcast } from '../events/upcasters'
 
 const MAX_RECONNECT_ATTEMPTS = 3
 const MAX_BACKOFF_MS = 30_000
 
 interface SSEConnectionOptions {
   enabled?: boolean
+  knownTypes?: Set<string>
 }
 
 interface SSEConnectionState {
@@ -27,7 +29,7 @@ export function useSSEConnection<T extends { sequenceNumber?: number }>(
   onEvent: (event: T) => void,
   options: SSEConnectionOptions = {}
 ): SSEConnectionState {
-  const { enabled = true } = options
+  const { enabled = true, knownTypes } = options
   const [isConnected, setIsConnected] = useState(false)
   const [isStale, setIsStale] = useState(false)
   const [reconnectAttempt, setReconnectAttempt] = useState(0)
@@ -63,9 +65,15 @@ export function useSSEConnection<T extends { sequenceNumber?: number }>(
         return
       }
 
-      const result = schema.safeParse(parsed)
+      const rawType = (parsed as any)?.type
+      if (knownTypes && rawType && !knownTypes.has(rawType)) {
+        console.warn('[SSE] Unknown event type, skipping:', rawType)
+        return
+      }
+
+      const result = schema.safeParse(upcast(parsed))
       if (!result.success) {
-        console.error('[SSE] Schema validation failed:', result.error.flatten())
+        console.error('[SSE] Schema validation failed for known event:', rawType, result.error.flatten())
         return
       }
 
@@ -108,7 +116,7 @@ export function useSSEConnection<T extends { sequenceNumber?: number }>(
       const backoff = Math.min(1000 * Math.pow(2, attemptRef.current - 1), MAX_BACKOFF_MS)
       timeoutRef.current = setTimeout(connect, backoff)
     }
-  }, [url, enabled, schema])
+  }, [url, enabled, schema, knownTypes])
 
   useEffect(() => {
     if (!url || !enabled) {

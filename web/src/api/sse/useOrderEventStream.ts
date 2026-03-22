@@ -16,6 +16,22 @@ interface UseOrderEventStreamResult {
   reconnectAttempt: number
 }
 
+const KNOWN_ORDER_EVENT_TYPES = new Set<string>([
+  'OrderPlaced',
+  'OrderConfirmed',
+  'PrepStarted',
+  'PizzaBaking',
+  'PizzaReady',
+  'OrderReady',
+  'DriverAssigned',
+  'OrderDispatched',
+  'OrderDelivered',
+  'OrderCancelled',
+  'OrderFailed',
+  'ItemStatusUpdated',
+  'SnapshotReceived',
+])
+
 export function useOrderEventStream(orderId: string): UseOrderEventStreamResult {
   const [orderViewModel, dispatch] = useReducer(
     orderReducer,
@@ -28,7 +44,8 @@ export function useOrderEventStream(orderId: string): UseOrderEventStreamResult 
   const { isConnected, isStale, reconnectAttempt } = useSSEConnection(
     `/api/sse/orders/${orderId}`,
     OrderEventSchema,
-    (event: OrderEvent) => dispatch(event)
+    (event: OrderEvent) => dispatch(event),
+    { knownTypes: KNOWN_ORDER_EVENT_TYPES }
   )
 
   // Sync stale state into UI store (shows banner globally)

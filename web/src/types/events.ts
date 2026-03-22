@@ -6,6 +6,7 @@ import type { OrderStatus } from './models'
 const BaseEventFields = {
   sequenceNumber: z.number().int().nonnegative(),
   occurredAt: z.string().datetime(),
+  schemaVersion: z.number().int().positive().default(1),
 }
 
 // ─── Order event payloads ─────────────────────────────────────────────────────
@@ -36,7 +37,7 @@ const OrderPlacedPayloadSchema = z.object({
   deliveryAddress: DeliveryAddressSchema.nullable(),
   totalPrice: z.number().nonnegative(),
   placedAt: z.string().datetime(),
-})
+}).passthrough()
 
 const OrderConfirmedPayloadSchema = z.object({
   ...BaseEventFields,
@@ -44,7 +45,7 @@ const OrderConfirmedPayloadSchema = z.object({
   acceptedBy: z.string(),
   estimatedPrepMinutes: z.number().int().positive(),
   confirmedAt: z.string().datetime(),
-})
+}).passthrough()
 
 const PrepStartedPayloadSchema = z.object({
   ...BaseEventFields,
@@ -52,7 +53,7 @@ const PrepStartedPayloadSchema = z.object({
   itemId: z.string(),
   kitchenStation: z.string(),
   prepStartedAt: z.string().datetime(),
-})
+}).passthrough()
 
 const PizzaBakingPayloadSchema = z.object({
   ...BaseEventFields,
@@ -60,34 +61,34 @@ const PizzaBakingPayloadSchema = z.object({
   itemId: z.string(),
   ovenNumber: z.number().int(),
   bakingStartedAt: z.string().datetime(),
-})
+}).passthrough()
 
 const PizzaReadyPayloadSchema = z.object({
   ...BaseEventFields,
   orderId: z.string().uuid(),
   itemId: z.string(),
   readyAt: z.string().datetime(),
-})
+}).passthrough()
 
 const OrderReadyPayloadSchema = z.object({
   ...BaseEventFields,
   orderId: z.string().uuid(),
   readyAt: z.string().datetime(),
-})
+}).passthrough()
 
 const DriverAssignedPayloadSchema = z.object({
   ...BaseEventFields,
   orderId: z.string().uuid(),
   driverId: z.string(),
   assignedAt: z.string().datetime(),
-})
+}).passthrough()
 
 const OrderDispatchedPayloadSchema = z.object({
   ...BaseEventFields,
   orderId: z.string().uuid(),
   driverId: z.string(),
   dispatchedAt: z.string().datetime(),
-})
+}).passthrough()
 
 const OrderDeliveredPayloadSchema = z.object({
   ...BaseEventFields,
@@ -95,7 +96,7 @@ const OrderDeliveredPayloadSchema = z.object({
   driverId: z.string(),
   deliveredAt: z.string().datetime(),
   deliveryDurationMinutes: z.number().int().positive(),
-})
+}).passthrough()
 
 const OrderCancelledPayloadSchema = z.object({
   ...BaseEventFields,
@@ -103,7 +104,7 @@ const OrderCancelledPayloadSchema = z.object({
   reason: z.string(),
   cancelledAt: z.string().datetime(),
   refundEligible: z.boolean(),
-})
+}).passthrough()
 
 const OrderFailedPayloadSchema = z.object({
   ...BaseEventFields,
@@ -111,7 +112,7 @@ const OrderFailedPayloadSchema = z.object({
   reason: z.string(),
   failedAt: z.string().datetime(),
   refundEligible: z.boolean(),
-})
+}).passthrough()
 
 const ItemStatusUpdatedPayloadSchema = z.object({
   ...BaseEventFields,
@@ -119,7 +120,7 @@ const ItemStatusUpdatedPayloadSchema = z.object({
   itemId: z.string(),
   status: z.string(),
   updatedAt: z.string().datetime(),
-})
+}).passthrough()
 
 // Synthetic client-side event for SSE drop + poll recovery
 const SnapshotReceivedPayloadSchema = z.object({
