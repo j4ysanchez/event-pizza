@@ -1,5 +1,6 @@
 import { http } from 'msw'
-import { buildHappyPathEvents } from '../data/order.fixtures'
+import { buildHappyPathEvents, buildPickupHappyPathEvents } from '../data/order.fixtures'
+import { mockFulfillmentType } from './orders'
 import type { OperationsEvent } from '../../types/events'
 
 function makeSSEStream(events: unknown[], delayMs = 1500): Response {
@@ -59,7 +60,10 @@ const mockOperationsEvents: OperationsEvent[] = [
 
 export const sseHandlers = [
   http.get('/api/sse/orders/:orderId', () =>
-    makeSSEStream(buildHappyPathEvents(), 2000)
+    makeSSEStream(
+      mockFulfillmentType === 'pickup' ? buildPickupHappyPathEvents() : buildHappyPathEvents(),
+      2000
+    )
   ),
 
   http.get('/api/sse/delivery/:orderId', () => {

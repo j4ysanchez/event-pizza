@@ -134,6 +134,69 @@ export function buildHappyPathEvents(): OrderEvent[] {
   ]
 }
 
+// Pickup happy path — stops at OrderReady, no driver events
+export function buildPickupHappyPathEvents(): OrderEvent[] {
+  const placedAt = now()
+  return [
+    {
+      type: 'OrderPlaced',
+      payload: {
+        sequenceNumber: 1,
+        occurredAt: placedAt,
+        orderId: MOCK_ORDER_ID,
+        customerId: 'cust-mock-123',
+        items: [{ itemId: MOCK_ITEM_ID, pizzaId: 'pizza-margherita', name: 'Margherita', quantity: 1, unitPrice: 12.99 }],
+        fulfillmentType: 'pickup',
+        deliveryAddress: null,
+        totalPrice: 12.99,
+        placedAt,
+      },
+    },
+    {
+      type: 'OrderConfirmed',
+      payload: {
+        sequenceNumber: 2,
+        occurredAt: now(),
+        orderId: MOCK_ORDER_ID,
+        acceptedBy: 'staff-001',
+        estimatedPrepMinutes: 15,
+        confirmedAt: now(),
+      },
+    },
+    {
+      type: 'PrepStarted',
+      payload: {
+        sequenceNumber: 3,
+        occurredAt: now(),
+        orderId: MOCK_ORDER_ID,
+        itemId: MOCK_ITEM_ID,
+        kitchenStation: 'station-1',
+        prepStartedAt: now(),
+      },
+    },
+    {
+      type: 'PizzaBaking',
+      payload: {
+        sequenceNumber: 4,
+        occurredAt: now(),
+        orderId: MOCK_ORDER_ID,
+        itemId: MOCK_ITEM_ID,
+        ovenNumber: 2,
+        bakingStartedAt: now(),
+      },
+    },
+    {
+      type: 'OrderReady',
+      payload: {
+        sequenceNumber: 5,
+        occurredAt: now(),
+        orderId: MOCK_ORDER_ID,
+        readyAt: now(),
+      },
+    },
+  ]
+}
+
 // Cancellation scenario
 export function buildCancellationEvents(): OrderEvent[] {
   return [
